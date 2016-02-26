@@ -83,12 +83,11 @@ BlueNestTimer.prototype.getLabel = function() {
 }
 
 BlueNestTimer.prototype.reset = function() {
-	this.stopInterval(); // should be stopped if we completed
+	this.clearInternalInterval(); // should be stopped if we completed
 	this.timerIsRunning = false;
 	this.action = "ACTION_RUNNING";
 	this.totalElapsedMilli = 0;
 }
-
 
 //FIXME: callbacks
 BlueNestTimer.prototype.noCallbacks = function() {

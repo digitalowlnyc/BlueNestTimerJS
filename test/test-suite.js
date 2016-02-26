@@ -131,4 +131,28 @@ describe('Test Suite: BlueNestTimer', function() {
     timer.start();
     setTimeout(timeoutHelper, 1);
   });
+
+  it('should be able to reset and reuse a timer', function(done) {
+    var toleranceInMilli = 10;
+    this.timeout(30000);
+    var runTimerFor = 30000; // long enough where we don't ever hit
+
+    // Tick counter is result of start callback + tick callbacks
+    // Add a few seconds because we want to use stop() and not have the timer actually complete
+    var timer = new BlueNestTimer(runTimerFor, null, null, null, null);
+    timer.settingInterval(1);
+    timer.start();
+
+    var firstRunTime = 1000;
+    var secondRunTime = 3000;
+    setTimeout(function() {
+      timer.reset();
+      timer.start();
+      setTimeout(function() {
+        timer.stop();
+        chai.expect(timer.getTime()).to.be.within(secondRunTime - toleranceInMilli, secondRunTime + toleranceInMilli);
+        done();
+      }, secondRunTime);
+    }, firstRunTime);
+  });
 });
