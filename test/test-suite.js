@@ -230,4 +230,23 @@ describe('Test Suite: BlueNestTimer', function() {
     chai.expect(startCallbackWasCalled).to.be.true;
     chai.expect(stopCallbackWasCalled).to.be.true;
   });
+  it('finish callback is only called once', function(done) {
+    var finishCallbackCounter= 0;
+    var finishCallback = function() {
+      finishCallbackCounter+=1;
+    }
+
+    var timer = new BlueNestTimer(50, null, null, finishCallback, null);
+    timer.settingInterval(1);
+    chai.expect(finishCallbackCounter).to.equal(0);
+
+    timer.start();
+
+    setTimeout(function() {
+      chai.expect(finishCallbackCounter).to.equal(1);
+      timer.start();
+      chai.expect(finishCallbackCounter).to.equal(1);
+      done();
+    }, 75);
+  });
 });

@@ -127,9 +127,15 @@ BlueNestTimer.timerCounter = 1000;
 BlueNestTimer.prototype.start = function(intervalStartTime) {
 	var force = (typeof intervalStartTime !== "undefined");
 
-	if(!force && this.timerIsRunning) {
-		console.log("Timer is already running");
-		return;
+	if(!force) {
+		if(this.timerIsRunning) {
+			console.log("Timer is already running");
+			return;
+		}
+		if(this.isFinished()) {
+			console.log("Timer is already finished");
+			return;
+		}
 	}
 
 	this.interval = this.settings.interval;
