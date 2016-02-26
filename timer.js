@@ -180,49 +180,6 @@ BlueNestTimer.prototype.clearInternalInterval = function() {
 		throw "Interval was not set up correctly";
 	}
 
-	function stringifySafe(object, depth, encountered) {
-		if (typeof depth === "undefined") {
-			depth = 0;
-		}
-		if (typeof encountered === "undefined") {
-			encountered = {};
-		}
-		if (depth > 5) {
-			return "Too deep";
-		}
-		var output = "\n";
-
-		var identifier = 1000;
-		for (prop in object) {
-			var value = object[prop];
-			if (value in encountered) {
-				output += prop + ":" + "cycle=" + encountered[value] + "\n";
-				continue;
-			}
-			encountered[value] = identifier++;
-
-			var printValue = "";
-			if (typeof value === "object") {
-				printValue += "[objid=" + encountered[value] + "] \n";
-				printValue += "\n{"
-				printValue += stringifySafe(value, depth + 1, encountered);
-				printValue += "}\n"
-			} else if (typeof value === "function") {
-				printValue += "[funcid=" + encountered[value] + "] ";
-				printValue += "function\n";
-			} else {
-				if (value === null) {
-					value = "null";
-				}
-				printValue = value + "\n";
-			}
-			output += Array(depth).join("\t");
-			output += prop + ":" + printValue;
-		}
-		return output;
-	}
-
-	//console.log("Clearing: " + stringifySafe(this.internalIntervalId));
 	clearInterval(this.internalIntervalId);
 	this.internalIntervalId = -1;
 }
