@@ -1,0 +1,23 @@
+{
+  "name": "blue-nest-timer",
+  "version": "0.0.1",
+  "description": "A countdown timer in javascript",
+  "main": "timer.js",
+  "scripts": {
+    "test": "mocha test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/heliosbryan/BlueNestTimerJS.git"
+  },
+  "keywords": [
+    "timer",
+    "stopwatch"
+  ],
+  "author": "Bryan Mayor, Blue Nest Digital LLC",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/heliosbryan/BlueNestTimerJS/issues"
+  },
+  "homepage": "https://github.com/heliosbryan/BlueNestTimerJS#readme"
+}
