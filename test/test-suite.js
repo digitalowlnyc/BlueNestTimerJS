@@ -155,4 +155,31 @@ describe('Test Suite: BlueNestTimer', function() {
       }, secondRunTime);
     }, firstRunTime);
   });
+
+  it('should be clonable via getState and timerSynchronize', function(done) {
+    var toleranceInMilli = 10;
+    this.timeout(30000);
+    var runTimerFor = 30000; // long enough where we don't ever hit
+
+    // Tick counter is result of start callback + tick callbacks
+    // Add a few seconds because we want to use stop() and not have the timer actually complete
+    var timer = new BlueNestTimer(runTimerFor, null, null, null, null);
+    timer.start();
+    timer.getState();
+    setTimeout(function() {
+      var state = timer.getState();
+      var newTimer = new BlueNestTimer();
+      newTimer.timerSynchronize(state);
+      newTimer.start();
+
+      var newState = newTimer.getState();
+
+      // expected to be different, so null them out
+      state.intervalStartTime = null;
+      newState.intervalStartTime = null;
+
+      chai.expect(newState).to.eql(state);
+      done();
+    }, 1000);
+  });
 });

@@ -169,9 +169,15 @@ BlueNestTimer.prototype.adjustInterval = function(newInterval) {
 	this.startInterval();
 }
 
-BlueNestTimer.prototype.clearInternalInterval = function() {
-	if (this.internalIntervalId === -1) {
-		throw "Interval was not set up correctly";
+BlueNestTimer.prototype.clearInternalInterval = function(bypassCheck) {
+	if(typeof bypassCheck === "undefined") {
+		bypassCheck = false;
+	}
+
+	if(!bypassCheck) {
+		if (this.internalIntervalId === -1) {
+			throw "Interval was not set up correctly";
+		}
 	}
 
 	clearInterval(this.internalIntervalId);
@@ -197,7 +203,7 @@ BlueNestTimer.prototype.restoreState = function(timerState) {
 
 BlueNestTimer.prototype.timerSynchronize = function(data) {
 	this.log("BlueNestTimer.prototype.synchronize: " + data);
-	this.clearInternalInterval();
+	this.clearInternalInterval(true);
 
 	this.id = data.id;
 	this.label = data.label;
