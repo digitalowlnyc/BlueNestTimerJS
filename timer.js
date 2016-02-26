@@ -1,35 +1,35 @@
-var BlueNestTimer = function (
-		timerDurationMilli,
+var BlueNestTimer = function(
+	timerDurationMilli,
+	onTimerStart,
+	onTimerStop,
+	onTimerFinish,
+	onTimerTick
+) {
+	this.self = this;
+
+	this.id = BlueNestTimer.timerCounter++;
+
+	this.registerCallbacks(ß
 		onTimerStart,
 		onTimerStop,
 		onTimerFinish,
 		onTimerTick
-	) {
-    this.self = this;
+	);
 
-    this.id = BlueNestTimer.timerCounter++;
+	this.timerDurationMilli = timerDurationMilli;
+	this.timerIsRunning = false;
+	this.action = "ACTION_RUNNING";
+	this.totalElapsedMilli = 0;
+	this.label = null;
 
-    this.registerCallbacks(
-		onTimerStart,
-		onTimerStop,
-		onTimerFinish,
-		onTimerTick
-		);
+	this.initInternals();
 
-  	this.timerDurationMilli = timerDurationMilli;
-  	this.timerIsRunning = false;
-  	this.action = "ACTION_RUNNING";
-  	this.totalElapsedMilli = 0;
-  	this.label = null;
+	var timerIsValid = parseInt(timerDurationMilli) && timerDurationMilli > 0;
+	if (!timerIsValid) {
+		throw "Timer duration is invalid: " + timerDurationMilli;
+	}
 
-  	this.initInternals();
-
-  	var timerIsValid = parseInt(timerDurationMilli) && timerDurationMilli > 0;
-  	if(!timerIsValid) {
-  		throw "Timer duration is invalid: " + timerDurationMilli;
-  	}
-
-  	this.log("Initialized");
+	this.log("Initialized");
 };
 
 BlueNestTimer.prototype.registerCallbacks = function(
@@ -37,29 +37,29 @@ BlueNestTimer.prototype.registerCallbacks = function(
 	onTimerStop,
 	onTimerFinish,
 	onTimerTick
-		) {
-	if(onTimerStart != null)
+) {
+	if (onTimerStart != null)
 		this.onTimerStart = onTimerStart;
-	if(onTimerStop != null)
+	if (onTimerStop != null)
 		this.onTimerStop = onTimerStop;
-	if(onTimerFinish != null)
+	if (onTimerFinish != null)
 		this.onTimerFinish = onTimerFinish;
-	if(onTimerTick != null)
+	if (onTimerTick != null)
 		this.onTimerTick = onTimerTick;
 }
 
 BlueNestTimer.prototype.initInternals = function() {
 	this.internalIntervalId = -1;
-  	this.settings = {};
-  	this.settings.interval = 200;
+	this.settings = {};
+	this.settings.interval = 200;
 
-  	// If true, adjust interval when timer has less than
-  	// a full interval left on the clock. For example, if the timer
-  	// interval is 500ms and we have 350ms until the timer finishes,
-  	// adjust to "minimumInterval" so the stopping of the timer is more
-  	// accurate. Otherwise we may go over the stop time.
-  	this.settings.adjustIntervalNearFinish = false;
-  	this.settings.minimumInterval = 20;
+	// If true, adjust interval when timer has less than
+	// a full interval left on the clock. For example, if the timer
+	// interval is 500ms and we have 350ms until the timer finishes,
+	// adjust to "minimumInterval" so the stopping of the timer is more
+	// accurate. Otherwise we may go over the stop time.
+	this.settings.adjustIntervalNearFinish = false;
+	this.settings.minimumInterval = 20;
 
 	this.loggingEnabled = true;
 	this.intervalStartTime = null;
@@ -69,13 +69,13 @@ BlueNestTimer.prototype.initInternals = function() {
 	Static no-arg constructor 
 **/
 BlueNestTimer.create = function(parent) {
-  var F = function() {};
-  F.prototype = BlueNestTimer.prototype;
-  return new F();
+	var F = function() {};
+	F.prototype = BlueNestTimer.prototype;
+	return new F();
 }
 
 BlueNestTimer.prototype.log = function(msg) {
-	if(this.loggingEnabled)
+	if (this.loggingEnabled)
 		console.log("BlueNestTimer.js:" + msg);
 }
 
@@ -90,29 +90,38 @@ BlueNestTimer.prototype.getLabel = function() {
 BlueNestTimer.prototype.reset = function() {
 	this.stopInterval(); // should be stopped if we completed
 	this.timerIsRunning = false;
-  	this.action = "ACTION_RUNNING";
-  	this.totalElapsedMilli = 0;
+	this.action = "ACTION_RUNNING";
+	this.totalElapsedMilli = 0;
 }
 
 
 //FIXME: callbacks
 BlueNestTimer.prototype.noCallbacks = function() {
 	this.log("Setting empty callbacks");
-  	this.onTimerStart = function(){};
-	this.onTimerStop = function(){};
-	this.onTimerFinish = function(){};
-	this.onTimerTick = function(){};
+	this.onTimerStart = function() {};
+	this.onTimerStop = function() {};
+	this.onTimerFinish = function() {};
+	this.onTimerTick = function() {};
 };
 
 BlueNestTimer.prototype.debug = function() {
 	this.log("Setting debug callbacks");
+
 	function debugString(self) {
 		return "Timer[" + self.id + "] ";
 	}
-  	this.onTimerStart = function(){this.log(debugString(this) + " start")};
-	this.onTimerStop = function(){this.log("Debug: stop")};
-	this.onTimerFinish = function(){this.log("Debug: finish: " + this.totalElapsedMilli)};
-	this.onTimerTick = function(elapsed){this.log(debugString(this) + this.totalElapsedMilli)};
+	this.onTimerStart = function() {
+		this.log(debugString(this) + " start")
+	};
+	this.onTimerStop = function() {
+		this.log("Debug: stop")
+	};
+	this.onTimerFinish = function() {
+		this.log("Debug: finish: " + this.totalElapsedMilli)
+	};
+	this.onTimerTick = function(elapsed) {
+		this.log(debugString(this) + this.totalElapsedMilli)
+	};
 };
 
 // For unique counter identifiers
@@ -125,13 +134,13 @@ BlueNestTimer.prototype.start = function(intervalStartTime) {
 
 	this.interval = this.settings.interval;
 
-  	this.timerIsRunning = true;
-  	this.action = "ACTION_RUNNING";
+	this.timerIsRunning = true;
+	this.action = "ACTION_RUNNING";
 
 	this.intervalStartTime = intervalStartTime || Date.now();
 
-	if(this.internalIntervalId === -1) {
-		if(this.onTimerStart != null)
+	if (this.internalIntervalId === -1) {
+		if (this.onTimerStart != null)
 			this.onTimerStart.bind(this.self);
 		this.log("Starting timer: " + this.getDescription());
 		this.startInterval();
@@ -139,8 +148,7 @@ BlueNestTimer.prototype.start = function(intervalStartTime) {
 };
 
 BlueNestTimer.prototype.getDescription = function() {
-	return this.totalElapsedMilli + "/" + this.timerDurationMilli
-			+ " [last="+ this.intervalStartTime + "][running="+ this.timerIsRunning +"]";
+	return this.totalElapsedMilli + "/" + this.timerDurationMilli + " [last=" + this.intervalStartTime + "][running=" + this.timerIsRunning + "]";
 }
 
 BlueNestTimer.prototype.getTime = function() {
@@ -168,48 +176,48 @@ BlueNestTimer.prototype.adjustInterval = function(newInterval) {
 }
 
 BlueNestTimer.prototype.clearInternalInterval = function() {
-	if(this.internalIntervalId === -1) {
+	if (this.internalIntervalId === -1) {
 		throw "Interval was not set up correctly";
 	}
 
 	function stringifySafe(object, depth, encountered) {
-		if(typeof depth === "undefined") {
+		if (typeof depth === "undefined") {
 			depth = 0;
 		}
-		if(typeof encountered === "undefined") {
+		if (typeof encountered === "undefined") {
 			encountered = {};
 		}
-		if(depth > 5) {
+		if (depth > 5) {
 			return "Too deep";
 		}
 		var output = "\n";
 
 		var identifier = 1000;
-		for(prop in object) {
+		for (prop in object) {
 			var value = object[prop];
-			if(value in encountered) {
+			if (value in encountered) {
 				output += prop + ":" + "cycle=" + encountered[value] + "\n";
 				continue;
 			}
 			encountered[value] = identifier++;
 
 			var printValue = "";
-			if(typeof value === "object") {
+			if (typeof value === "object") {
 				printValue += "[objid=" + encountered[value] + "] \n";
 				printValue += "\n{"
 				printValue += stringifySafe(value, depth + 1, encountered);
 				printValue += "}\n"
-			} else if(typeof value === "function") {
+			} else if (typeof value === "function") {
 				printValue += "[funcid=" + encountered[value] + "] ";
 				printValue += "function\n";
 			} else {
-				if(value === null) {
+				if (value === null) {
 					value = "null";
 				}
 				printValue = value + "\n";
 			}
 			output += Array(depth).join("\t");
-			output += prop + ":" + printValue ;
+			output += prop + ":" + printValue;
 		}
 		return output;
 	}
@@ -221,19 +229,19 @@ BlueNestTimer.prototype.clearInternalInterval = function() {
 
 BlueNestTimer.prototype.restoreState = function(timerState) {
 
-    this.id = timerState["id"];
-  	this.label = timerState["label"];
+	this.id = timerState["id"];
+	this.label = timerState["label"];
 
-  	this.timerDurationMilli = timerState["timerDurationMilli"];
-  	this.timerIsRunning = timerState["timerIsRunning"];
-  	this.action = timerState["action"];
-  	this.totalElapsedMilli = timerState["totalElapsedMilli"];
+	this.timerDurationMilli = timerState["timerDurationMilli"];
+	this.timerIsRunning = timerState["timerIsRunning"];
+	this.action = timerState["action"];
+	this.totalElapsedMilli = timerState["totalElapsedMilli"];
 
-	if(this.timerIsRunning) {
+	if (this.timerIsRunning) {
 		this.start(timerState["intervalStartTime"]);
 	}
 
-  	this.log("Build timer");
+	this.log("Build timer");
 }
 
 BlueNestTimer.prototype.timerSynchronize = function(data) {
@@ -241,14 +249,14 @@ BlueNestTimer.prototype.timerSynchronize = function(data) {
 	this.clearInternalInterval();
 
 	this.id = data.id;
-  	this.label = data.label;
+	this.label = data.label;
 
 	this.timerDurationMilli = data.timerDurationMilli;
 	this.timerIsRunning = data.timerIsRunning;
 	this.action = data.action;
 	this.totalElapsedMilli = data.totalElapsedMilli;
 
-	if(this.timerIsRunning) {
+	if (this.timerIsRunning) {
 		this.start();
 	}
 }
@@ -300,14 +308,14 @@ BlueNestTimer.prototype.updateTimer = function() {
 	lastIntervalStartTime = this.intervalStartTime;
 	this.intervalStartTime = now;
 
-	if(this.timerIsRunning && this.action === "ACTION_STOP") {
-		if(this.onTimerStop != null)
+	if (this.timerIsRunning && this.action === "ACTION_STOP") {
+		if (this.onTimerStop != null)
 			this.onTimerStop.bind(this.self);
 		this.timerIsRunning = false;
 		return;
 	}
 
-	if(this.timerIsRunning === false) {
+	if (this.timerIsRunning === false) {
 		return;
 	}
 
@@ -316,20 +324,20 @@ BlueNestTimer.prototype.updateTimer = function() {
 
 	var timeLeft = this.timerDurationMilli - this.totalElapsedMilli;
 
-	if(timeLeft <= 0) {
+	if (timeLeft <= 0) {
 		this.finished();
 
-		if(this.onTimerFinish != null)
+		if (this.onTimerFinish != null)
 			this.onTimerFinish.bind(this.self)();
 	} else {
-		if(this.onTimerTick != null)
+		if (this.onTimerTick != null)
 			this.onTimerTick.bind(this.self)(this.totalElapsedMilli);
-		if(this.settings.adjustIntervalNearFinish) {
-			if(timeLeft < this.interval && this.interval != this.settings.minimumInterval) {
+		if (this.settings.adjustIntervalNearFinish) {
+			if (timeLeft < this.interval && this.interval != this.settings.minimumInterval) {
 				console.log("Adjust to lower interval");
 				this.adjustInterval(this.settings.minimumInterval);
 			}
-	    }
+		}
 	}
 };
 
