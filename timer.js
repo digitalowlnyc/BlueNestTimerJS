@@ -237,8 +237,8 @@ BlueNestTimer.prototype.getState = function() {
 }
 
 BlueNestTimer.prototype.destroy = function() {
-	this.stop();
-	this.clearInternalInterval();
+	this.timerIsRunning = false;
+	this.clearInternalInterval(true);
 }
 
 BlueNestTimer.prototype.stop = function() {
