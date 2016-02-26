@@ -24,11 +24,6 @@ var BlueNestTimer = function(
 
 	this.initInternals();
 
-	var timerIsValid = parseInt(timerDurationMilli) && timerDurationMilli > 0;
-	if (!timerIsValid) {
-		throw "Timer duration is invalid: " + timerDurationMilli;
-	}
-
 	this.log("Initialized");
 };
 
