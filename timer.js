@@ -9,7 +9,7 @@ var BlueNestTimer = function(
 
 	this.id = BlueNestTimer.timerCounter++;
 
-	this.registerCallbacks(ß
+	this.registerCallbacks(
 		onTimerStart,
 		onTimerStop,
 		onTimerFinish,

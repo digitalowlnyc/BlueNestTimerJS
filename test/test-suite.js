@@ -11,7 +11,7 @@ describe('Test Suite: BlueNestTimer', function() {
 
   it('should run for X seconds between start and stop', function(done) {
     var runTimerFor = 3000;
-    var toleranceInMilli = 150;
+    var toleranceInMilli = 250;
 
     // Add a few seconds because we want to use stop() and not have the timer actually complete
     var timer = new BlueNestTimer(runTimerFor + 5000);
