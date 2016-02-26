@@ -83,7 +83,7 @@ BlueNestTimer.prototype.getLabel = function() {
 }
 
 BlueNestTimer.prototype.reset = function() {
-	this.clearInternalInterval(); // should be stopped if we completed
+	this.clearInternalInterval(true); // should be stopped if we completed
 	this.timerIsRunning = false;
 	this.action = "ACTION_RUNNING";
 	this.totalElapsedMilli = 0;
@@ -125,6 +125,10 @@ BlueNestTimer.timerCounter = 1000;
 	intervalStarteTime: can be null
 **/
 BlueNestTimer.prototype.start = function(intervalStartTime) {
+	if(this.timerIsRunning) {
+		console.log("Timer is already running");
+		return;
+	}
 
 	this.interval = this.settings.interval;
 
@@ -239,6 +243,10 @@ BlueNestTimer.prototype.destroy = function() {
 }
 
 BlueNestTimer.prototype.stop = function() {
+	if(!this.timerIsRunning) {
+		console.log("Timer is already stopped");
+		return;
+	}
 	this.clearInternalInterval();
 	this.log("Stopping.....");
 	this.action = "ACTION_STOP";

@@ -157,13 +157,9 @@ describe('Test Suite: BlueNestTimer', function() {
   });
 
   it('should be clonable via getState and timerSynchronize', function(done) {
-    var toleranceInMilli = 10;
-    this.timeout(30000);
-    var runTimerFor = 30000; // long enough where we don't ever hit
+    this.timeout(10000);
 
-    // Tick counter is result of start callback + tick callbacks
-    // Add a few seconds because we want to use stop() and not have the timer actually complete
-    var timer = new BlueNestTimer(runTimerFor, null, null, null, null);
+    var timer = new BlueNestTimer(5000, null, null, null, null);
     timer.start();
     timer.getState();
     setTimeout(function() {
@@ -181,5 +177,25 @@ describe('Test Suite: BlueNestTimer', function() {
       chai.expect(newState).to.eql(state);
       done();
     }, 1000);
+  });
+
+  it('calling [start/stop/reset] twice in a row should be ok', function() {
+    
+    var timer = new BlueNestTimer(1000, null, null, null, null);
+    timer.start();
+    timer.start();
+    console.log("Start called twice");
+    chai.expect(true).to.equal(true); //TODO find a more semantic way to do this
+
+    timer.stop();
+    timer.stop();
+    console.log("Stop called twice");
+
+    chai.expect(true).to.equal(true);
+    timer.reset();
+    timer.reset();
+    console.log("Reset called twice");
+
+    chai.expect(true).to.equal(true); 
   });
 });
