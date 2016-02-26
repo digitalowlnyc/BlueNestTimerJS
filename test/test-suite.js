@@ -159,14 +159,19 @@ describe('Test Suite: BlueNestTimer', function() {
   it('should be clonable via getState and timerSynchronize', function(done) {
     this.timeout(10000);
 
-    var timer = new BlueNestTimer(5000, null, null, null, null);
+
+    var startWasCalled = false;
+    var startTimerCallback = function() {
+      startWasCalled = true;
+    }
+
+    var timer = new BlueNestTimer(5000);
     timer.start();
     timer.getState();
     setTimeout(function() {
       var state = timer.getState();
-      var newTimer = new BlueNestTimer();
+      var newTimer = new BlueNestTimer(1, startTimerCallback);
       newTimer.timerSynchronize(state);
-      newTimer.start();
 
       var newState = newTimer.getState();
 
@@ -174,13 +179,15 @@ describe('Test Suite: BlueNestTimer', function() {
       state.intervalStartTime = null;
       newState.intervalStartTime = null;
 
+      chai.expect(newState.timerIsRunning).to.be.true;
+      chai.expect(startWasCalled).to.be.true;
       chai.expect(newState).to.eql(state);
       done();
     }, 1000);
   });
 
   it('calling [start/stop/reset] twice in a row should be ok', function() {
-    
+
     var timer = new BlueNestTimer(1000, null, null, null, null);
     timer.start();
     timer.start();
@@ -197,5 +204,30 @@ describe('Test Suite: BlueNestTimer', function() {
     console.log("Reset called twice");
 
     chai.expect(true).to.equal(true); 
+  });
+
+  it('calling start/stop should call appropriate callbacks', function() {
+    var startCallbackWasCalled = false;
+    var startCallback = function() {
+      startCallbackWasCalled = true;
+    }
+
+    var stopCallbackWasCalled = false;
+    var stopCallback = function() {
+      stopCallbackWasCalled = true;
+    }
+    var timer = new BlueNestTimer(1000, startCallback, stopCallback, null, null);
+    timer.settingInterval(1);
+    chai.expect(startCallbackWasCalled).to.be.false;
+    chai.expect(stopCallbackWasCalled).to.be.false; 
+
+    timer.start();
+
+    chai.expect(startCallbackWasCalled).to.be.true;
+    chai.expect(stopCallbackWasCalled).to.be.false; 
+
+    timer.stop();
+    chai.expect(startCallbackWasCalled).to.be.true;
+    chai.expect(stopCallbackWasCalled).to.be.true;
   });
 });

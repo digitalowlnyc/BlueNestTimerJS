@@ -125,7 +125,9 @@ BlueNestTimer.timerCounter = 1000;
 	intervalStarteTime: can be null
 **/
 BlueNestTimer.prototype.start = function(intervalStartTime) {
-	if(this.timerIsRunning) {
+	var force = (typeof intervalStartTime !== "undefined");
+
+	if(!force && this.timerIsRunning) {
 		console.log("Timer is already running");
 		return;
 	}
@@ -139,7 +141,7 @@ BlueNestTimer.prototype.start = function(intervalStartTime) {
 
 	if (this.internalIntervalId === -1) {
 		if (this.onTimerStart != null)
-			this.onTimerStart.bind(this.self);
+			this.onTimerStart.bind(this.self)();
 		this.log("Starting timer: " + this.getDescription());
 		this.startInterval();
 	}
@@ -194,11 +196,12 @@ BlueNestTimer.prototype.restoreState = function(timerState) {
 	this.label = timerState["label"];
 
 	this.timerDurationMilli = timerState["timerDurationMilli"];
-	this.timerIsRunning = timerState["timerIsRunning"];
 	this.action = timerState["action"];
 	this.totalElapsedMilli = timerState["totalElapsedMilli"];
 
-	if (this.timerIsRunning) {
+	var timerIsRunning = timerState["timerIsRunning"];
+
+	if (timerIsRunning) {
 		this.start(timerState["intervalStartTime"]);
 	}
 
@@ -206,20 +209,10 @@ BlueNestTimer.prototype.restoreState = function(timerState) {
 }
 
 BlueNestTimer.prototype.timerSynchronize = function(data) {
-	this.log("BlueNestTimer.prototype.synchronize: " + data);
+	this.log("BlueNestTimer.prototype.timerSynchronize: " + data);
 	this.clearInternalInterval(true);
 
-	this.id = data.id;
-	this.label = data.label;
-
-	this.timerDurationMilli = data.timerDurationMilli;
-	this.timerIsRunning = data.timerIsRunning;
-	this.action = data.action;
-	this.totalElapsedMilli = data.totalElapsedMilli;
-
-	if (this.timerIsRunning) {
-		this.start();
-	}
+	this.restoreState(data);
 }
 
 BlueNestTimer.prototype.getState = function() {
@@ -251,6 +244,8 @@ BlueNestTimer.prototype.stop = function() {
 	this.log("Stopping.....");
 	this.action = "ACTION_STOP";
 	this.timerIsRunning = false;
+	if (this.onTimerStop != null)
+			this.onTimerStop.bind(this.self)();
 };
 
 BlueNestTimer.prototype.isFinished = function() {
@@ -273,14 +268,13 @@ BlueNestTimer.prototype.updateTimer = function() {
 	lastIntervalStartTime = this.intervalStartTime;
 	this.intervalStartTime = now;
 
-	if (this.timerIsRunning && this.action === "ACTION_STOP") {
-		if (this.onTimerStop != null)
-			this.onTimerStop.bind(this.self);
-		this.timerIsRunning = false;
-		return;
-	}
-
-	if (this.timerIsRunning === false) {
+	//TODO See if this timerIsRunning logic can be removed
+	if (this.timerIsRunning) {
+		if(this.action === "ACTION_STOP") {
+			this.timerIsRunning = false;
+			return;
+		}
+	} else {
 		return;
 	}
 
