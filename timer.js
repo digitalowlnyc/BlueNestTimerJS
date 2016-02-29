@@ -3,7 +3,8 @@ var BlueNestTimer = function(
 	onTimerStart,
 	onTimerStop,
 	onTimerFinish,
-	onTimerTick
+	onTimerTick,
+	onTimerReset
 ) {
 	this.self = this;
 
@@ -13,7 +14,8 @@ var BlueNestTimer = function(
 		onTimerStart,
 		onTimerStop,
 		onTimerFinish,
-		onTimerTick
+		onTimerTick,
+		onTimerReset
 	);
 
 	this.timerDurationMilli = timerDurationMilli;
@@ -31,7 +33,8 @@ BlueNestTimer.prototype.registerCallbacks = function(
 	onTimerStart,
 	onTimerStop,
 	onTimerFinish,
-	onTimerTick
+	onTimerTick,
+	onTimerReset,
 ) {
 	if (onTimerStart != null)
 		this.onTimerStart = onTimerStart;
@@ -41,6 +44,8 @@ BlueNestTimer.prototype.registerCallbacks = function(
 		this.onTimerFinish = onTimerFinish;
 	if (onTimerTick != null)
 		this.onTimerTick = onTimerTick;
+	if (onTimerReset != null)
+		this.onTimerReset = onTimerReset;
 }
 
 BlueNestTimer.prototype.initInternals = function() {
@@ -87,6 +92,7 @@ BlueNestTimer.prototype.reset = function() {
 	this.timerIsRunning = false;
 	this.action = "ACTION_RUNNING";
 	this.totalElapsedMilli = 0;
+	this.onTimerReset.bind(this.self)();
 }
 
 //FIXME: callbacks
@@ -96,6 +102,7 @@ BlueNestTimer.prototype.noCallbacks = function() {
 	this.onTimerStop = function() {};
 	this.onTimerFinish = function() {};
 	this.onTimerTick = function() {};
+	this.onTimerReset = function() {};
 };
 
 BlueNestTimer.prototype.debug = function() {
@@ -106,16 +113,19 @@ BlueNestTimer.prototype.debug = function() {
 		return "Timer[" + self.id + "] ";
 	}
 	this.onTimerStart = function() {
-		this.log(debugString(this) + " start")
+		this.log(debugString(this) + " start");
 	};
 	this.onTimerStop = function() {
-		this.log("Debug: stop")
+		this.log("Debug: stop");
 	};
 	this.onTimerFinish = function() {
-		this.log("Debug: finish: " + this.totalElapsedMilli)
+		this.log("Debug: finish: " + this.totalElapsedMilli);
 	};
 	this.onTimerTick = function(elapsed) {
-		this.log(debugString(this) + this.totalElapsedMilli)
+		this.log(debugString(this) + this.totalElapsedMilli);
+	};
+	this.onTimerReset = function() {
+		this.log("Debug: reset");
 	};
 };
 
