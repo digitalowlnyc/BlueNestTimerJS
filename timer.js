@@ -34,7 +34,7 @@ BlueNestTimer.prototype.registerCallbacks = function(
 	onTimerStop,
 	onTimerFinish,
 	onTimerTick,
-	onTimerReset,
+	onTimerReset
 ) {
 	if (onTimerStart != null)
 		this.onTimerStart = onTimerStart;
