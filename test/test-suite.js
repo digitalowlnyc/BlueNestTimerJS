@@ -34,22 +34,30 @@ describe('Test Suite: BlueNestTimer', function() {
 
   });
 
-  it('should execute callback every X seconds', function(done) {
+  it('should execute (multiple) callbacks every X seconds', function(done) {
     var interval = 1000;
 
     var runTimerFor = 3500;
-    var tickCounter = 0;
+    var tickCounterOne = tickCounterTwo = 0;
 
     var expectedCallbacks = Math.floor(runTimerFor / interval);
 
-
-    var countTickFunc = function() {
-      tickCounter += 1;
-      console.log("Tick #" + tickCounter);
+    var countTickFuncOne = function() {
+      tickCounterOne += 1;
+      console.log("Tick counter one: #" + tickCounterOne);
     };
-    // Tick counter is result of start callback + tick callbacks
+    var countTickFuncTwo = function() {
+      tickCounterTwo += 1;
+      console.log("Tick counter two: #" + tickCounterTwo);
+    };
+    // Tick counter sum result of 1 finish callback + (Total-1) tick callbacks
     // Add a few seconds because we want to use stop() and not have the timer actually complete
-    var timer = new BlueNestTimer(runTimerFor + 5000, null, null, countTickFunc, countTickFunc);
+    var timer = new BlueNestTimer(runTimerFor + 5000, null, null, countTickFuncOne, countTickFuncOne);
+
+    // register the second callback
+    timer.registerCallback("finish", countTickFuncTwo);
+    timer.registerCallback("tick", countTickFuncTwo);
+
     timer.settingInterval(interval);
     timer.start();
 
@@ -59,7 +67,8 @@ describe('Test Suite: BlueNestTimer', function() {
       timer.stop();
 
       var elapsed = timer.getTime();
-      chai.expect(tickCounter).to.equal(expectedCallbacks);
+      chai.expect(tickCounterOne).to.equal(expectedCallbacks);
+      chai.expect(tickCounterTwo).to.equal(expectedCallbacks);
       done();
     }, runTimerFor);
 

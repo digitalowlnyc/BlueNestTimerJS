@@ -6,11 +6,20 @@ var BlueNestTimer = function(
 	onTimerTick,
 	onTimerReset
 ) {
+	this.validCallbackTypes = {
+	"start": true,
+	"stop": true,
+	"finish": true,
+	"tick": true,
+	"reset": true,
+	};
+
 	this.self = this;
 
 	this.id = BlueNestTimer.timerCounter++;
 
-	this.registerCallbacks(
+	this.callbacks = {};
+	this.registerManyCallbacks(
 		onTimerStart,
 		onTimerStop,
 		onTimerFinish,
@@ -29,7 +38,7 @@ var BlueNestTimer = function(
 	this.log("Initialized");
 };
 
-BlueNestTimer.prototype.registerCallbacks = function(
+BlueNestTimer.prototype.registerManyCallbacks = function(
 	onTimerStart,
 	onTimerStop,
 	onTimerFinish,
@@ -37,15 +46,43 @@ BlueNestTimer.prototype.registerCallbacks = function(
 	onTimerReset
 ) {
 	if (onTimerStart != null)
-		this.onTimerStart = onTimerStart;
+		this.registerCallback("start", onTimerStart);
 	if (onTimerStop != null)
-		this.onTimerStop = onTimerStop;
+		this.registerCallback("stop", onTimerStop);
 	if (onTimerFinish != null)
-		this.onTimerFinish = onTimerFinish;
+		this.registerCallback("finish", onTimerFinish);
 	if (onTimerTick != null)
-		this.onTimerTick = onTimerTick;
+		this.registerCallback("tick", onTimerTick);
 	if (onTimerReset != null)
-		this.onTimerReset = onTimerReset;
+		this.registerCallback("reset", onTimerReset);
+}
+
+BlueNestTimer.prototype.fireCallback = function(key, arg) {
+	if(!(key in this.validCallbackTypes)) {
+		throw "Bad callback fired: " + key;
+	}
+	if(!(key in this.callbacks)) {
+		return;
+	}
+	this.log("Firing callbacks of type: " + key);
+
+	var callbacks = this.callbacks[key];
+	for(var x=0;x<callbacks.length;x++) {
+		var thisCallback = callbacks[x];
+		thisCallback(arg);
+	}
+}
+
+BlueNestTimer.prototype.registerCallback = function(key, callback) {
+	if(!(key in this.validCallbackTypes)) {
+		throw "Bad callback register attempt: " + key;
+	}
+	// Initialize
+	if(!(key in this.callbacks)) {
+		this.callbacks[key] = [];
+	}
+
+	this.callbacks[key].push(callback.bind(this));
 }
 
 BlueNestTimer.prototype.initInternals = function() {
@@ -92,18 +129,12 @@ BlueNestTimer.prototype.reset = function() {
 	this.timerIsRunning = false;
 	this.action = "ACTION_RUNNING";
 	this.totalElapsedMilli = 0;
-	if(this.onTimerReset != null)
-		this.onTimerReset.bind(this.self)();
+	this.fireCallback("reset");
 }
 
-//FIXME: callbacks
 BlueNestTimer.prototype.noCallbacks = function() {
 	this.log("Setting empty callbacks");
-	this.onTimerStart = function() {};
-	this.onTimerStop = function() {};
-	this.onTimerFinish = function() {};
-	this.onTimerTick = function() {};
-	this.onTimerReset = function() {};
+	this.callbacks = {};
 };
 
 BlueNestTimer.prototype.debug = function() {
@@ -113,21 +144,21 @@ BlueNestTimer.prototype.debug = function() {
 	function debugString(self) {
 		return "Timer[" + self.id + "] ";
 	}
-	this.onTimerStart = function() {
-		this.log(debugString(this) + " start");
-	};
-	this.onTimerStop = function() {
+	this.registerCallback("start", function() {
+		this.log("Debug: " + debugString(this) + " start");
+	});
+	this.registerCallback("stop", function() {
 		this.log("Debug: stop");
-	};
-	this.onTimerFinish = function() {
+	});
+	this.registerCallback("finish", function() {
 		this.log("Debug: finish: " + this.totalElapsedMilli);
-	};
-	this.onTimerTick = function(elapsed) {
+	});
+	this.registerCallback("tick", function(elapsed) {
 		this.log(debugString(this) + this.totalElapsedMilli);
-	};
-	this.onTimerReset = function() {
+	});
+	this.registerCallback("reset", function() {
 		this.log("Debug: reset");
-	};
+	});
 };
 
 // For unique counter identifiers
@@ -158,8 +189,7 @@ BlueNestTimer.prototype.start = function(intervalStartTime) {
 	this.intervalStartTime = intervalStartTime || Date.now();
 
 	if (this.internalIntervalId === -1) {
-		if (this.onTimerStart != null)
-			this.onTimerStart.bind(this.self)();
+		this.fireCallback("start");
 		this.log("Starting timer: " + this.getDescription());
 		this.startInterval();
 	}
@@ -262,8 +292,7 @@ BlueNestTimer.prototype.stop = function() {
 	this.log("Stopping.....");
 	this.action = "ACTION_STOP";
 	this.timerIsRunning = false;
-	if (this.onTimerStop != null)
-			this.onTimerStop.bind(this.self)();
+	this.fireCallback("stop");
 };
 
 BlueNestTimer.prototype.isFinished = function() {
@@ -303,12 +332,9 @@ BlueNestTimer.prototype.updateTimer = function() {
 
 	if (timeLeft <= 0) {
 		this.finished();
-
-		if (this.onTimerFinish != null)
-			this.onTimerFinish.bind(this.self)();
+		this.fireCallback("finish");
 	} else {
-		if (this.onTimerTick != null)
-			this.onTimerTick.bind(this.self)(this.totalElapsedMilli);
+		this.fireCallback("tick", this.totalElapsedMilli);
 		if (this.settings.adjustIntervalNearFinish) {
 			if (timeLeft < this.interval && this.interval != this.settings.minimumInterval) {
 				console.log("Adjust to lower interval");
