@@ -92,7 +92,8 @@ BlueNestTimer.prototype.reset = function() {
 	this.timerIsRunning = false;
 	this.action = "ACTION_RUNNING";
 	this.totalElapsedMilli = 0;
-	this.onTimerReset.bind(this.self)();
+	if(this.onTimerReset != null)
+		this.onTimerReset.bind(this.self)();
 }
 
 //FIXME: callbacks
