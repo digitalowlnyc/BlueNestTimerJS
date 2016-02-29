@@ -64,7 +64,6 @@ BlueNestTimer.prototype.fireCallback = function(key, arg) {
 	if(!(key in this.callbacks)) {
 		return;
 	}
-	this.log("Firing callbacks of type: " + key);
 
 	var callbacks = this.callbacks[key];
 	for(var x=0;x<callbacks.length;x++) {
@@ -304,7 +303,7 @@ BlueNestTimer.prototype.finished = function() {
 	this.clearInternalInterval();
 	this.timerIsRunning = false;
 
-	// hack:
+	// FIXME: Hack:
 	// timer can go over if we are in the middle of an interval
 	// perhaps make intervals smaller as end approaches
 	this.totalElapsedMilli = this.timerDurationMilli;
