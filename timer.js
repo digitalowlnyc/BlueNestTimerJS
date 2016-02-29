@@ -70,7 +70,7 @@ BlueNestTimer.create = function(parent) {
 }
 
 BlueNestTimer.prototype.log = function(msg) {
-	if (this.loggingEnabled)
+	if(this.loggingEnabled)
 		console.log("BlueNestTimer.js:" + msg);
 }
 
@@ -100,6 +100,7 @@ BlueNestTimer.prototype.noCallbacks = function() {
 
 BlueNestTimer.prototype.debug = function() {
 	this.log("Setting debug callbacks");
+	this.loggingEnabled = true;
 
 	function debugString(self) {
 		return "Timer[" + self.id + "] ";
