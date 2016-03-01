@@ -29,7 +29,7 @@ var BlueNestTimer = function(
 
 	this.timerDurationMilli = timerDurationMilli;
 	this.timerIsRunning = false;
-	this.action = "ACTION_RUNNING";
+	this.action = "NEW";
 	this.totalElapsedMilli = 0;
 	this.label = null;
 
@@ -37,6 +37,23 @@ var BlueNestTimer = function(
 
 	this.log("Initialized");
 };
+
+BlueNestTimer.prototype.initInternals = function() {
+	this.internalIntervalId = -1;
+	this.settings = {};
+	this.settings.interval = 200;
+
+	// If true, adjust interval when timer has less than
+	// a full interval left on the clock. For example, if the timer
+	// interval is 500ms and we have 350ms until the timer finishes,
+	// adjust to "minimumInterval" so the stopping of the timer is more
+	// accurate. Otherwise we may go over the stop time.
+	this.settings.adjustIntervalNearFinish = false;
+	this.settings.minimumInterval = 20;
+
+	this.loggingEnabled = true;
+	this.intervalStartTime = null;
+}
 
 BlueNestTimer.prototype.registerManyCallbacks = function(
 	onTimerStart,
@@ -84,23 +101,6 @@ BlueNestTimer.prototype.registerCallback = function(key, callback) {
 	this.callbacks[key].push(callback.bind(this));
 }
 
-BlueNestTimer.prototype.initInternals = function() {
-	this.internalIntervalId = -1;
-	this.settings = {};
-	this.settings.interval = 200;
-
-	// If true, adjust interval when timer has less than
-	// a full interval left on the clock. For example, if the timer
-	// interval is 500ms and we have 350ms until the timer finishes,
-	// adjust to "minimumInterval" so the stopping of the timer is more
-	// accurate. Otherwise we may go over the stop time.
-	this.settings.adjustIntervalNearFinish = false;
-	this.settings.minimumInterval = 20;
-
-	this.loggingEnabled = true;
-	this.intervalStartTime = null;
-}
-
 /**
 	Static no-arg constructor 
 **/
@@ -126,7 +126,7 @@ BlueNestTimer.prototype.getLabel = function() {
 BlueNestTimer.prototype.reset = function() {
 	this.clearInternalInterval(true); // should be stopped if we completed
 	this.timerIsRunning = false;
-	this.action = "ACTION_RUNNING";
+	this.action = "NEW";
 	this.totalElapsedMilli = 0;
 	this.fireCallback("reset");
 }
@@ -287,9 +287,15 @@ BlueNestTimer.prototype.stop = function() {
 		console.log("Timer is already stopped");
 		return;
 	}
+
+	// Since we can stop mid-interval, we need to clear
+	// the interval to prevent future updates, then call
+	// updateTimer() to add whatever elapsed since the
+	// last interval.
 	this.clearInternalInterval();
 	this.log("Stopping.....");
 	this.action = "ACTION_STOP";
+	BlueNestTimer.prototype.updateTimer();
 	this.timerIsRunning = false;
 	this.fireCallback("stop");
 };
