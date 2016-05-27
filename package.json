@@ -1,5 +1,5 @@
 {
-  "name": "blue-nest-timer",
+  "name": "blue-nest-digital/blue-nest-timer",
   "version": "0.0.1",
   "description": "A countdown timer in javascript",
   "main": "timer.js",
